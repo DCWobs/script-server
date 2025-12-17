@@ -61,7 +61,7 @@
       </div>
       <div class="modal-footer">
         <a class="modal-close waves-effect btn-flat">Cancel</a>
-        <a class="waves-effect btn-flat red-text" @click="deleteSchedule">Delete</a>
+        <a class="waves-effect btn-flat red-text" @click="doDeleteSchedule">Delete</a>
       </div>
     </div>
   </div>
@@ -118,7 +118,7 @@ export default {
   },
   
   methods: {
-    ...mapActions('schedules', ['fetchSchedules', 'deleteSchedule as deleteScheduleAction']),
+    ...mapActions('schedules', ['fetchSchedules']),
     
     async refresh() {
       try {
@@ -173,11 +173,11 @@ export default {
       this.deleteModalInstance.open();
     },
     
-    async deleteSchedule() {
+    async doDeleteSchedule() {
       if (!this.scheduleToDelete) return;
       
       try {
-        await this.deleteScheduleAction({jobId: this.scheduleToDelete.id});
+        await this.$store.dispatch('schedules/deleteSchedule', {jobId: this.scheduleToDelete.id});
         M.toast({html: `Deleted schedule #${this.scheduleToDelete.id}`});
         this.deleteModalInstance.close();
         this.scheduleToDelete = null;

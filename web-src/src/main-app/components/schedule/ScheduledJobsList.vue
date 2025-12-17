@@ -69,7 +69,7 @@
 
 <script>
 import {mapState, mapActions, mapGetters} from 'vuex';
-import '@/common/materializecss/imports/modals';
+import '@/common/materializecss/imports/modal';
 
 export default {
   name: 'ScheduledJobsList',

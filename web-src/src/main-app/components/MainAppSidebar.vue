@@ -14,6 +14,7 @@
       <SearchPanel v-model="searchText"/>
 
       <div class="header-link">
+        <ThemeToggle/>
         <a v-if="adminUser" class="primary-color-text" href="admin.html">
           <i class="material-icons">settings</i>
         </a>
@@ -47,12 +48,14 @@
 import {mapActions, mapState} from 'vuex';
 import ScriptsList from './scripts/ScriptsList'
 import SearchPanel from './SearchPanel';
+import ThemeToggle from '@/common/components/ThemeToggle';
 
 export default {
   name: 'MainAppSidebar',
   components: {
     SearchPanel,
-    ScriptsList
+    ScriptsList,
+    ThemeToggle
   },
 
   data() {
@@ -132,8 +135,10 @@ export default {
 }
 
 .header-link {
-  margin: 0 1rem;
+  margin: 0 0.5rem;
   display: flex;
+  align-items: center;
+  gap: 4px;
   line-height: 0;
 }
 

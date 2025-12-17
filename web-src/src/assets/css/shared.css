@@ -85,3 +85,57 @@
     --error-color: #F44336;
 }
 
+/* Dark Mode Theme */
+[data-theme="dark"] {
+    --shadow-4dp: 0 4px 5px 0 rgba(0, 0, 0, 0.30), 0 1px 10px 0 rgba(0, 0, 0, 0.24), 0 2px 4px -1px rgba(0, 0, 0, 0.40);
+    --shadow-6dp: 0 6px 10px 0 rgba(0, 0, 0, 0.30), 0 1px 18px 0 rgba(0, 0, 0, 0.24), 0 3px 5px -1px rgba(0, 0, 0, 0.40);
+    --shadow-8dp: 0 5px 5px -3px rgba(0, 0, 0, .4), 0 8px 10px 1px rgba(0, 0, 0, .28), 0 3px 14px 2px rgba(0, 0, 0, .24);
+
+    --hover-color: rgba(255, 255, 255, 0.08);
+    --focus-color: rgba(255, 255, 255, 0.16);
+    --focus-color-solid: #3d3d3d;
+
+    --font-color-main: rgba(255, 255, 255, 0.87);
+    --font-color-medium: rgba(255, 255, 255, 0.60);
+    --font-color-disabled: rgba(255, 255, 255, 0.38);
+
+    --primary-color: #4DB6AC;
+    --primary-color-raised-hover-solid: #5CC4BA;
+    --primary-color-raised-focus-solid: #6BD2C8;
+    --primary-color-when-focused: rgba(255, 255, 255, 0.16);
+    --primary-color-when-hovered: rgba(255, 255, 255, 0.08);
+    --font-on-primary-color-main: rgba(0, 0, 0, 0.87);
+    --font-on-primary-color-medium: rgba(0, 0, 0, 0.60);
+
+    --primary-color-dark-color: #00897B;
+    --primary-color-dark-when-focused: rgba(255, 255, 255, 0.16);
+    --primary-color-dark-when-hovered: rgba(255, 255, 255, 0.08);
+    --font-on-primary-color-dark-main: rgba(255, 255, 255, 0.87);
+    --font-on-primary-color-dark-medium: rgba(255, 255, 255, 0.60);
+
+    --primary-color-light-color: #1a3a38;
+    --primary-color-light-when-hovered: rgba(255, 255, 255, 0.08);
+    --primary-color-light-when-focused: rgba(255, 255, 255, 0.16);
+    --font-on-primary-color-light--main: rgba(255, 255, 255, 0.87);
+
+    --surface-color: #121212;
+
+    --background-color: #1e1e1e;
+    --background-color-slight-emphasis: rgba(255, 255, 255, 0.03);
+    --background-color-high-emphasis: rgba(255, 255, 255, 0.08);
+    --background-color-level-4dp: #272727;
+    --background-color-level-8dp: #2d2d2d;
+    --background-color-level-16dp: #353535;
+    --background-color-disabled: rgba(255, 255, 255, 0.12);
+
+    --script-header-background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    --login-header-background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+
+    --separator-color: #3d3d3d;
+
+    --outline-color: rgba(255, 255, 255, 0.22);
+    --outline-color-disabled: var(--background-color-disabled);
+
+    --error-color: #EF5350;
+}
+

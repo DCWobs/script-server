@@ -13,6 +13,7 @@
             <router-link to="/scripts">Scripts</router-link>
           </li>
         </ul>
+        <ThemeToggle class="admin-theme-toggle"/>
       </div>
       <div v-if="subheader" class="subheader">{{ subheader }}</div>
     </div>
@@ -28,6 +29,7 @@ import scriptConfig from './store/script-config-module';
 import scripts from './store/scripts-module';
 import File_upload from '@/common/components/file_upload'
 import authModule from '@/common/store/auth';
+import ThemeToggle from '@/common/components/ThemeToggle';
 
 Vue.use(Vuex);
 
@@ -59,7 +61,7 @@ const store = new Vuex.Store({
 
 export default {
   name: 'AdminApp',
-  components: {File_upload},
+  components: {File_upload, ThemeToggle},
   store,
 
   mounted() {
@@ -148,5 +150,15 @@ export default {
 .home-button i {
   font-size: 1.8em;
   line-height: 1.8em;
+}
+
+.admin-theme-toggle {
+  margin-left: auto;
+  margin-right: 16px;
+  align-self: center;
+}
+
+.admin-theme-toggle:deep(i) {
+  color: var(--font-on-primary-color-dark-main) !important;
 }
 </style>

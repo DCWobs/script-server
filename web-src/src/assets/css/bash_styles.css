@@ -162,3 +162,18 @@ span.text_style_dim {
 span.text_style_hidden {
     opacity: 0;
 }
+
+/* Dark mode adjustments for terminal colors */
+[data-theme="dark"] span.text_color_black,
+[data-theme="dark"] span.text_color_black a {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] span.background_black,
+[data-theme="dark"] span.background_black a {
+    background-color: #424242;
+}
+
+[data-theme="dark"] span.background_white {
+    background-color: #e0e0e0;
+}

@@ -1,9 +1,16 @@
 <template>
   <div>
     <div v-if="mobileView && showSchedulePanel" ref="scheduleModal" class="modal">
-      <SchedulePanel :mobile-view="true" @close="showSchedulePanel = false"/>
+      <SchedulePanel :mobile-view="true" 
+                     :editingSchedule="editingSchedule"
+                     @close="closeSchedulePanel"/>
     </div>
-    <SchedulePanel v-else-if="showSchedulePanel" @close="showSchedulePanel = false"/>
+    <SchedulePanel v-else-if="showSchedulePanel" 
+                   :editingSchedule="editingSchedule"
+                   @close="closeSchedulePanel"/>
+    <ScheduledJobsList v-if="schedulable && !showSchedulePanel"
+                       :scriptName="scriptName"
+                       @edit="handleEditSchedule"/>
   </div>
 </template>
 
@@ -11,12 +18,14 @@
 import {mapState} from 'vuex';
 import {isNull} from '@/common/utils/common';
 import SchedulePanel from '@/main-app/components/schedule/SchedulePanel';
+import ScheduledJobsList from '@/main-app/components/schedule/ScheduledJobsList';
 
 export default {
   name: 'ScriptViewScheduleHolder',
 
   components: {
-    SchedulePanel
+    SchedulePanel,
+    ScheduledJobsList
   },
 
   props: {
@@ -29,7 +38,8 @@ export default {
     return {
       mobileView: false,
       showSchedulePanel: false,
-      scheduleModal: null
+      scheduleModal: null,
+      editingSchedule: null
     }
   },
 
@@ -46,11 +56,30 @@ export default {
     ...mapState('scriptConfig', {
       scriptConfig: 'scriptConfig'
     }),
+    
+    schedulable() {
+      return this.scriptConfig && this.scriptConfig.schedulable;
+    },
+    
+    scriptName() {
+      return this.scriptConfig ? this.scriptConfig.name : null;
+    }
   },
 
   methods: {
     open() {
+      this.editingSchedule = null;
       this.showSchedulePanel = true;
+    },
+    
+    handleEditSchedule(schedule) {
+      this.editingSchedule = schedule;
+      this.showSchedulePanel = true;
+    },
+    
+    closeSchedulePanel() {
+      this.showSchedulePanel = false;
+      this.editingSchedule = null;
     },
 
     resizeListener: function () {
@@ -88,6 +117,7 @@ export default {
       });
 
       if (!newValue) {
+        this.editingSchedule = null;
         this.$emit('close');
       }
     },

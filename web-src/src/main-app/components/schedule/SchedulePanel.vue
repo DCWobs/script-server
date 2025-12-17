@@ -1,7 +1,7 @@
 <template>
   <div class="schedule-panel card">
     <div class="card-content">
-      <span class="card-title primary-color-text">Schedule execution</span>
+      <span class="card-title primary-color-text">{{ isEditing ? 'Edit Schedule #' + editingSchedule.id : 'Schedule execution' }}</span>
       <div class="schedule-type-panel">
         <p class="schedule-type-field">
           <label>
@@ -93,7 +93,7 @@
       <PromisableButton :click="runScheduleAction"
                         :enabled="errors.length === 0"
                         :preloaderStyle="{ width: '20px', height: '20px' }"
-                        title="Schedule"/>
+                        :title="isEditing ? 'Update' : 'Schedule'"/>
     </div>
     </div>
   </div>
@@ -121,6 +121,10 @@ export default {
       type: Boolean,
       default: false
     },
+    editingSchedule: {
+      type: Object,
+      default: null
+    }
   },
 
   data() {
@@ -159,19 +163,76 @@ export default {
   mounted: function () {
     this.id = this._uid;
 
+    if (this.editingSchedule) {
+      this.populateFromExisting(this.editingSchedule);
+    }
+    
     M.updateTextFields();
   },
 
   methods: {
     ...mapActions('scriptSchedule', ['schedule']),
+    ...mapActions('schedules', ['updateSchedule', 'fetchSchedules']),
 
     runScheduleAction() {
       const scheduleSetup = this.buildScheduleSetup();
+      
+      if (this.isEditing) {
+        return this.updateSchedule({
+          jobId: this.editingSchedule.id,
+          schedule: scheduleSetup
+        }).then(() => {
+          M.toast({html: 'Updated schedule #' + this.editingSchedule.id});
+          this.fetchSchedules({});
+          this.close();
+        });
+      }
+      
       return this.schedule({scheduleSetup})
           .then(({data: response}) => {
             M.toast({html: 'Scheduled #' + response['id']});
+            this.fetchSchedules({});
             this.close();
           });
+    },
+    
+    populateFromExisting(schedule) {
+      const s = schedule.schedule;
+      
+      this.oneTimeSchedule = !s.repeatable;
+      
+      // Parse start datetime
+      if (s.start_datetime) {
+        const startDate = new Date(s.start_datetime);
+        this.startDate = startDate;
+        this.startTime = startDate.toTimeString().substr(0, 5);
+      }
+      
+      // Parse repeat settings
+      if (s.repeatable) {
+        this.repeatPeriod = s.repeat_period || 1;
+        this.repeatTimeUnit = s.repeat_unit || 'days';
+        
+        // Parse end option
+        if (s.end_option === 'max_executions') {
+          this.endOption = 'maxExecuteCount';
+          this.maxExecuteCount = s.end_arg || 1;
+        } else if (s.end_option === 'end_datetime' && s.end_arg) {
+          this.endOption = 'endDatetime';
+          const endDate = new Date(s.end_arg);
+          this.endDate = endDate;
+          this.endTime = endDate.toTimeString().substr(0, 5);
+        } else {
+          this.endOption = 'never';
+        }
+        
+        // Parse weekdays
+        if (s.weekdays && s.weekdays.length > 0) {
+          this.weekDays.forEach(day => {
+            day.active = s.weekdays.includes(day.day);
+          });
+        }
+      }
     },
 
     buildScheduleSetup() {
@@ -229,6 +290,10 @@ export default {
   },
 
   computed: {
+    isEditing() {
+      return this.editingSchedule !== null;
+    },
+    
     weekdaysError() {
       if (this.oneTimeSchedule || this.repeatTimeUnit !== 'weeks') {
         return null;
@@ -250,6 +315,16 @@ export default {
 
     oneTimeSchedule() {
       this.$nextTick(this.checkErrors);
+    },
+    
+    editingSchedule: {
+      immediate: false,
+      handler(newValue) {
+        if (newValue) {
+          this.populateFromExisting(newValue);
+          this.$nextTick(() => M.updateTextFields());
+        }
+      }
     }
   }
 

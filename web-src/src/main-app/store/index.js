@@ -5,6 +5,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import authModule from '@/common/store/auth';
 import scheduleModule from './scriptSchedule';
+import schedulesModule from './schedules';
 import pageModule from './page';
 
 import scriptConfigModule from './scriptConfig';
@@ -27,7 +28,8 @@ const store = new Vuex.Store({
         auth: authModule,
         history: historyModule(),
         page: pageModule,
-        scriptSchedule: scheduleModule
+        scriptSchedule: scheduleModule,
+        schedules: schedulesModule
     },
     actions: {
         init({dispatch}) {

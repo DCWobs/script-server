@@ -174,6 +174,119 @@ class ScheduleService:
 
         return path
 
+    def list_jobs(self, user: User, script_name: str = None) -> list:
+        """List all scheduled jobs, optionally filtered by script name."""
+        jobs = []
+        files = [f for f in os.listdir(self._schedules_folder) if f.endswith('.json')]
+        
+        for file in files:
+            try:
+                job_path = os.path.join(self._schedules_folder, file)
+                content = file_utils.read_file(job_path)
+                job_json = custom_json.loads(content)
+                job = scheduling_job.from_dict(job_json)
+                
+                # Filter by script name if provided
+                if script_name and job.script_name != script_name:
+                    continue
+                
+                # Get next execution time
+                next_time = None
+                if job.schedule.repeatable or not date_utils.is_past(job.schedule.start_datetime):
+                    next_time = job.schedule.get_next_time()
+                
+                jobs.append({
+                    'id': job.id,
+                    'script_name': job.script_name,
+                    'user': job.user.get_audit_name(),
+                    'schedule': job.schedule.as_serializable_dict(),
+                    'parameter_values': job.parameter_values,
+                    'next_execution': next_time.isoformat() if next_time else None
+                })
+            except Exception:
+                LOGGER.exception('Failed to read schedule file: ' + file)
+        
+        return jobs
+
+    def get_job(self, job_id: str) -> dict:
+        """Get a specific job by ID."""
+        files = [f for f in os.listdir(self._schedules_folder) if f.endswith('.json')]
+        
+        for file in files:
+            job_path = os.path.join(self._schedules_folder, file)
+            content = file_utils.read_file(job_path)
+            job_json = custom_json.loads(content)
+            
+            if str(job_json.get('id')) == str(job_id):
+                job = scheduling_job.from_dict(job_json)
+                next_time = None
+                if job.schedule.repeatable or not date_utils.is_past(job.schedule.start_datetime):
+                    next_time = job.schedule.get_next_time()
+                
+                return {
+                    'id': job.id,
+                    'script_name': job.script_name,
+                    'user': job.user.get_audit_name(),
+                    'schedule': job.schedule.as_serializable_dict(),
+                    'parameter_values': job.parameter_values,
+                    'next_execution': next_time.isoformat() if next_time else None
+                }
+        
+        return None
+
+    def delete_job(self, job_id: str, user: User) -> bool:
+        """Delete a scheduled job by ID."""
+        files = [f for f in os.listdir(self._schedules_folder) if f.endswith('.json')]
+        
+        for file in files:
+            job_path = os.path.join(self._schedules_folder, file)
+            content = file_utils.read_file(job_path)
+            job_json = custom_json.loads(content)
+            
+            if str(job_json.get('id')) == str(job_id):
+                os.remove(job_path)
+                LOGGER.info(f'Deleted scheduled job {job_id} by user {user.get_audit_name()}')
+                return True
+        
+        return False
+
+    def update_job(self, job_id: str, incoming_schedule_config: dict, user: User) -> bool:
+        """Update an existing job's schedule configuration."""
+        files = [f for f in os.listdir(self._schedules_folder) if f.endswith('.json')]
+        
+        for file in files:
+            job_path = os.path.join(self._schedules_folder, file)
+            content = file_utils.read_file(job_path)
+            job_json = custom_json.loads(content)
+            
+            if str(job_json.get('id')) == str(job_id):
+                job = scheduling_job.from_dict(job_json)
+                
+                # Parse and validate new schedule config
+                new_schedule = read_schedule_config(incoming_schedule_config)
+                
+                if new_schedule.end_option == 'end_datetime':
+                    if new_schedule.start_datetime > new_schedule.end_arg:
+                        raise InvalidScheduleException('End date should be after start date')
+                
+                if new_schedule.end_option == 'max_executions' and new_schedule.end_arg <= 0:
+                    raise InvalidScheduleException('Count should be greater than 0!')
+                
+                # Preserve execution count for repeatable schedules
+                new_schedule.executions_count = job.schedule.executions_count
+                
+                # Update the job
+                job.schedule = new_schedule
+                self.save_job(job)
+                
+                # Reschedule the job
+                self.schedule_job(job, job_path)
+                
+                LOGGER.info(f'Updated scheduled job {job_id} by user {user.get_audit_name()}')
+                return True
+        
+        return False
+
     def stop(self):
         self.scheduler.stop()
 

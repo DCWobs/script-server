@@ -753,6 +753,58 @@ class AddSchedule(StreamUploadRequestHandler):
         self.write(json.dumps({'id': id}))
 
 
+class ListSchedulesHandler(BaseRequestHandler):
+    @check_authorization
+    @inject_user
+    def get(self, user):
+        script_name = self.get_query_argument('script', None)
+        jobs = self.application.schedule_service.list_jobs(user, script_name)
+        self.write(json.dumps(jobs))
+
+
+class GetScheduleHandler(BaseRequestHandler):
+    @check_authorization
+    @inject_user
+    def get(self, user, job_id):
+        job = self.application.schedule_service.get_job(job_id)
+        if job is None:
+            raise tornado.web.HTTPError(404, reason='Schedule not found')
+        self.write(json.dumps(job))
+
+
+class UpdateScheduleHandler(BaseRequestHandler):
+    @check_authorization
+    @inject_user
+    def put(self, user, job_id):
+        body = custom_json.loads(self.request.body.decode('utf-8'))
+        schedule_config = body.get('schedule')
+        
+        if not schedule_config:
+            raise tornado.web.HTTPError(400, reason='Missing schedule configuration')
+        
+        try:
+            success = self.application.schedule_service.update_job(
+                job_id,
+                external_model.parse_external_schedule(schedule_config),
+                user
+            )
+            if not success:
+                raise tornado.web.HTTPError(404, reason='Schedule not found')
+            self.write(json.dumps({'success': True}))
+        except InvalidScheduleException as e:
+            raise tornado.web.HTTPError(422, reason=str(e))
+
+
+class DeleteScheduleHandler(BaseRequestHandler):
+    @check_authorization
+    @inject_user
+    def delete(self, user, job_id):
+        success = self.application.schedule_service.delete_job(job_id, user)
+        if not success:
+            raise tornado.web.HTTPError(404, reason='Schedule not found')
+        self.write(json.dumps({'success': True}))
+
+
 def pipe_output_to_http(output_stream, write_callback):
     class OutputToHttpListener:
         def on_next(self, output):
@@ -840,6 +892,10 @@ def init(server_config: ServerConfig,
                 (r'/history/execution_log/short', GetShortHistoryEntriesHandler),
                 (r'/history/execution_log/long/(.*)', GetLongHistoryEntryHandler),
                 (r'/schedule', AddSchedule),
+                (r'/schedules', ListSchedulesHandler),
+                (r'/schedules/(.*)', GetScheduleHandler),
+                (r'/schedules/(.*)/update', UpdateScheduleHandler),
+                (r'/schedules/(.*)/delete', DeleteScheduleHandler),
                 (r'/auth/info', AuthInfoHandler),
                 (r'/result_files/(.*)',
                  DownloadResultFile,
